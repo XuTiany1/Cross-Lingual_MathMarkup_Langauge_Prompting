@@ -14,8 +14,10 @@ Answer:
 '''
 
 cot_prompt_2 = '''
+Your answer MUST end with the format: "Answer is A, B, C, or D"
 As an expert in {subject}, choose the most accurate answer to the question below. 
-Your goal is to select the correct option ’A’, ’B’, ’C’, or ’D’ by understanding the nuances of the topic.  
+Your goal is to select the correct option ’A’, ’B’, ’C’, or ’D’ by understanding the nuances of the topic.
+Your answer MUST end with the format: "Answer is A, B, C, or D"
 
 Question: {question} 
 A: {choice1} 

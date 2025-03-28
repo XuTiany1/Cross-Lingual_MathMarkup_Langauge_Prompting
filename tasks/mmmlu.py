@@ -14,41 +14,37 @@ import csv
 class mmlu_task(Task):
 
     def __init__(self, args):
-
         super().__init__()
 
-        ################################
-        # Download dataset 
-        # First, downlaoad AFRI_MGSM
-        mmmlu_data_card = "alexandrainst/m_mmlu"
-        mmmlu_data_dir = "data/m_mmlu/"
-        os.makedirs(mmmlu_data_dir, exist_ok=True)
-        # 'ar', 'bn', 'ca', 'da', 'de', 'en', 'es', 'eu','fr', 'gu', 'hi', 'hr', 'hu', 'hy', 'id', 'is', 'kn', 'ml', 'mr', 'nb', 'ne', 'nl'
+        gmmlu_data_card = "CohereForAI/Global-MMLU"
+        gmmlu_data_dir = "data/global_mmlu/"
+        os.makedirs(gmmlu_data_dir, exist_ok=True)
         mmmlu_lang = ['en', 'es', 'fr']
-        self.download_dataset(mmmlu_data_card, mmmlu_data_dir, mmmlu_lang)
 
-        # Load the chosen langauge dataset
+        # Download the dataset in JSON Lines format
+        self.download_dataset(gmmlu_data_card, gmmlu_data_dir, mmmlu_lang)
+
+        # Load the chosen language dataset
         chosen_lang = args.lang
-        lang_dir = os.path.join(mmmlu_data_dir, chosen_lang)
-        print(lang_dir)
+        lang_dir = os.path.join(gmmlu_data_dir, chosen_lang)
+        print("Language directory:", lang_dir)
 
-        train_file = os.path.join(lang_dir, "train.tsv")
-        test_file = os.path.join(lang_dir, "test.tsv")
+        # Point to JSONL files instead of TSV
+        dev_file = os.path.join(lang_dir, "dev.jsonl")
+        test_file = os.path.join(lang_dir, "test.jsonl")
 
-        #self.train_data = pd.read_csv(train_file, sep="\t", quoting=3)
-        #self.test_data = pd.read_csv(test_file, sep="\t", quoting=3)
-        self.test_data = pd.read_csv(test_file, sep="\t", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # Read the JSON Lines with Pandas
+        self.dev_data = pd.read_json(dev_file, orient="records", lines=True)
+        self.test_data = pd.read_json(test_file, orient="records", lines=True)
 
-
-        # Set current data into either train or test
+        # By default, use test_data as the active data
         self.data = self.test_data
 
-        ################################
-        # English dataset
-        en_lang_dir = os.path.join(mmmlu_data_dir, 'en')
-        en_test_file = os.path.join(en_lang_dir, "test.tsv")
-        self.english_data = pd.read_csv(en_test_file, sep="\t", quoting=3)
-        
+        # Also load English test data for reference
+        en_lang_dir = os.path.join(gmmlu_data_dir, "en")
+        en_test_file = os.path.join(en_lang_dir, "test.jsonl")
+        self.english_data = pd.read_json(en_test_file, orient="records", lines=True)
+
 
 
 
@@ -56,24 +52,35 @@ class mmlu_task(Task):
     # Dataset Download
     #################
     def download_dataset(self, data_card, data_dir, list_of_languages):
-        # Download and save datasets for each language
+
         for lang in list_of_languages:
             lang_dir = os.path.join(data_dir, lang)
-            train_file = os.path.join(lang_dir, "train.tsv")
-            test_file = os.path.join(lang_dir, "test.tsv")
+            dev_file = os.path.join(lang_dir, "dev.jsonl")
+            test_file = os.path.join(lang_dir, "test.jsonl")
 
             # Skip downloading if files already exist
-            if os.path.exists(train_file) and os.path.exists(test_file):
+            if os.path.exists(dev_file) and os.path.exists(test_file):
                 print(f"Dataset for {lang} already exists. Skipping download.")
-                continue  # Skip to next language
+                continue
 
             print(f"Downloading dataset for language: {lang}")
             dataset = load_dataset(data_card, lang)
             os.makedirs(lang_dir, exist_ok=True)
 
-            # Save train and test splits as TSV files
-            dataset["train"].to_pandas().to_csv(os.path.join(lang_dir, "train.tsv"), sep="\t", index=False)
-            dataset["test"].to_pandas().to_csv(os.path.join(lang_dir, "test.tsv"), sep="\t", index=False)
+            # Save train and test splits as JSON Lines
+            dataset["test"].to_json(
+                test_file,
+                orient="records",
+                lines=True,
+                force_ascii=False
+            )
+            dataset["dev"].to_json(
+                dev_file,
+                orient="records",
+                lines=True,
+                force_ascii=False
+            )
+
 
 
 
@@ -91,8 +98,35 @@ class mmlu_task(Task):
         if idx < 0 or idx >= len(self.data):
             raise IndexError("Index out of range.")
         
-        return self.data.iloc[idx]["instruction"]
+        return self.data.iloc[idx]["question"]
     
+
+    def get_choices(self, idx: int) -> str:
+        """
+        Returns the question (input) at the given index in the current split.
+        """
+        if idx < 0 or idx >= len(self.data):
+            raise IndexError("Index out of range.")
+        
+        option_a = self.data.iloc[idx]["option_a"]
+        option_b = self.data.iloc[idx]["option_b"]
+        option_c = self.data.iloc[idx]["option_c"]
+        option_d = self.data.iloc[idx]["option_d"]
+        
+        list_of_choices = [option_a, option_b, option_c, option_d]
+
+        return list_of_choices
+    
+
+    def get_subject_category(self, idx: int) -> list:
+
+        subject = self.data.iloc[idx]["subject"]
+        category = self.data.iloc[idx]["subject_category"]
+
+        return [category, subject]
+        
+
+
 
     def get_english_input(self, idx: int) -> str:
         """
@@ -101,7 +135,7 @@ class mmlu_task(Task):
         if idx < 0 or idx >= len(self.data):
             raise IndexError("Index out of range.")
         
-        return self.english_data.iloc[idx]["instruction"]
+        return self.english_data.iloc[idx]["question"]
 
 
     def ground_truth_answer(self, idx: int):
@@ -134,46 +168,27 @@ class mmlu_task(Task):
     ############
     # Extract the final answer
     ############
-
     @staticmethod
-    def extract_final_number(self, response: str):
-        """
-        Extracts the final numerical value from the response string.
-        This function looks for numbers that may include commas, a dollar sign,
-        a sign (+/-), and an optional decimal part.
+    def extract_final_answer(response: str):
+        # List of regex patterns for common answer formats.
+        patterns = [
+            r'Answer\s+is\s+([ABCD])\s*$',             # Matches "Answer is A" (at end of string)
+            r'Answer:\s*([ABCD])\s*$',                  # Matches "Answer: A"
+            r'Answer\s*should\s*be\s*([ABCD])\s*$',       # Matches "Answer should be A"
+            r'Final\s+Answer\s*[:=]?\s*([ABCD])\s*$',     # Matches "Final Answer: A" or "Final Answer = A"
+        ]
+        # Try each pattern in order.
+        for pattern in patterns:
+            match = re.search(pattern, response, re.IGNORECASE)
+            if match:
+                return match.group(1).upper()
         
-        If a number is found, it returns it as an int or float.
-        If no number is found, it returns 0.
-        """
-        # This regex pattern matches:
-        # - An optional sign (- or +)
-        # - An optional dollar sign ($)
-        # - A digit (with possible commas in the middle)
-        # - An optional decimal part
-        pattern = re.compile(r'[-+]?\$?\d[\d,]*(?:\.\d+)?')
-        matches = pattern.findall(response)
+        # Fallback: capture the last standalone capitalized letter A, B, C, or D.
+        letters = re.findall(r'\b([ABCD])\b', response)
+        if letters:
+            return letters[-1].upper()
         
-        if not matches:
-            return 0
-
-        # Grab the last match
-        final_number_str = matches[-1]
-        
-        # Remove common extraneous symbols like '$' and commas
-        final_number_str = final_number_str.replace('$', '').replace(',', '')
-        print(final_number_str)
-        try:
-            num = float(final_number_str)
-            if math.isinf(num):
-                return 0  # or handle the case as needed
-            return int(num)
-
-        except ValueError:
-            return 0
-
-
-
-
+        return None
 
 
 

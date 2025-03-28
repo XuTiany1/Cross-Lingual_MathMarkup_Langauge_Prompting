@@ -91,12 +91,27 @@ for lang in args.languages:
     batch_english_questions = []
     batch_indices = []
     
-    for idx in range(1, args.total_dataset_sample):
+    answer_to_int = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+
+
+
+    # args.total_dataset_sample
+    total_sample = task.__len__()
+    for idx in range(1, total_sample):
         total_count += 1
         print(f"\n--- Collecting Test {idx} for language {lang} ---")
         native_question = task.get_input(idx)
         english_question = task.get_english_input(idx)
-        prompt = task.prompt_wrap(task, native_question, lang)
+        list_of_choices = task.get_choices(idx)
+        category = task.get_subject_category(idx)
+
+        
+        prompt = task.prompt_wrap(task, 
+                                  native_question, 
+                                  lang,
+                                  category[1],
+                                  list_of_choices
+                                  )
         
         batch_prompts.append(prompt)
         batch_native_questions.append(native_question)
@@ -120,10 +135,10 @@ for lang in args.languages:
 
 
         try:
-            numerical_answer = task.extract_final_number(task, output_str)
+            model_answer = task.extract_final_answer(output_str)
         except ValueError as e:
             print(f"Error for test {batch_indices[i]}: {e}")
-            numerical_answer = 0
+            model_answer = None
 
         # Ground Truth extraction
         try:
@@ -134,33 +149,36 @@ for lang in args.languages:
 
         # Accuracy check
         is_correct = (
-            numerical_answer is not None and
+            model_answer is not None and
             ground_truth_answer is not None and
-            output_str == ground_truth_answer
+            model_answer == ground_truth_answer
         )
+
         if is_correct:
             correct_count += 1
         model_accuracy = correct_count / total_count
 
         # Update metrics for Huggingface exact match metric
-        model_pred_str = str(numerical_answer) if numerical_answer is not None else ""
-        ground_truth_answer_str = str(ground_truth_answer)
-        model_preds.append(model_pred_str)
-        ground_truth_refs.append(ground_truth_answer_str)
+        model_preds.append(model_answer)
+        ground_truth_refs.append(ground_truth_answer)
 
-        current_em_model = exact_match_metric.compute(
-            predictions=model_preds, references=ground_truth_refs
-        )["exact_match"]
+        predictions_int = [answer_to_int[a] if a is not None else -1 for a in model_preds]
+        references_int = [answer_to_int[a] for a in ground_truth_refs]
+
+        current_ac_model = exact_match_metric.compute(
+            predictions=predictions_int, references=references_int
+        )["accuracy"]
 
         # Prepare the record for logging
         record = {
             "question": str(batch_english_questions[i]),
             "native_question": str(batch_native_questions[i]),
-            "model_answer": str(numerical_answer),
-            "ground_truth": int(ground_truth_answer) if ground_truth_answer is not None else None,
+            "choice a, b, c, d" : list_of_choices,
+            "model_answer": model_answer,
+            "ground_truth": ground_truth_answer,
             "model_reasoning": str(output_str),
             "model_accuracy_hand_calculated": float(model_accuracy),
-            "model_accuracy_huggingface": f"{current_em_model:.2%}",
+            "model_accuracy_huggingface": f"{current_ac_model:.2%}",
         }
 
         # Save record to JSON Lines file
