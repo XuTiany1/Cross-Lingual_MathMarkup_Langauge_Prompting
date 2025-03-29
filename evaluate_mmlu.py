@@ -19,6 +19,12 @@ args = argparse.Namespace(
     total_dataset_sample=250
 )
 
+# Add this block in your script to override from CLI
+parser = argparse.ArgumentParser()
+parser.add_argument('--lang', type=str, default='en')
+cli_args, _ = parser.parse_known_args()
+args.lang = cli_args.lang
+args.languages = [args.lang]
 
 
 # ===================================================================
