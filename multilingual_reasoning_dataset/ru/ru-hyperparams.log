@@ -1,7 +1,7 @@
 --- Hyperparameters / Args ---
 task: MATH
 lang: ru
-languages: ['zh', 'es', 'ru']
+languages: ['de', 'es', 'fr', 'zh', 'ja', 'ru', 'bn', 'hao', 'sw', 'te']
 local_model_path: /home/mila/x/xut/scratch/model/multilingual_reasoning
 model_max_token: 8000
 model_temperature: 0.5
