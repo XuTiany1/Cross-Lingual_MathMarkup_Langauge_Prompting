@@ -1,3 +1,4 @@
 *.pyc
 __pycache__/
 MGSM_result
+.vscode/
