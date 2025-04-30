@@ -1,0 +1,8 @@
+{
+  "method": "CLP",
+  "avg_completeness": 0.7807466666666669,
+  "avg_accuracy": 0.6903466666666667,
+  "avg_clarity": 0.6993866666666639,
+  "overall_avg": 0.7234933333333325,
+  "num_samples": 750
+}

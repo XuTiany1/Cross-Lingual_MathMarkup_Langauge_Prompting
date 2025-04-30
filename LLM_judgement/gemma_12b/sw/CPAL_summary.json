@@ -1,0 +1,8 @@
+{
+  "method": "CPAL",
+  "avg_completeness": 0.9224533333333321,
+  "avg_accuracy": 0.8652933333333332,
+  "avg_clarity": 0.8892666666666611,
+  "overall_avg": 0.8923377777777755,
+  "num_samples": 750
+}

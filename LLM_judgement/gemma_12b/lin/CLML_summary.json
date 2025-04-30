@@ -1,0 +1,8 @@
+{
+  "method": "CLML",
+  "avg_completeness": 0.341466666666667,
+  "avg_accuracy": 0.24639999999999954,
+  "avg_clarity": 0.3305333333333333,
+  "overall_avg": 0.3061333333333333,
+  "num_samples": 750
+}

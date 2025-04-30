@@ -1,0 +1,8 @@
+{
+  "method": "COT",
+  "avg_completeness": 0.09,
+  "avg_accuracy": 0.04462666666666668,
+  "avg_clarity": 0.08173333333333332,
+  "overall_avg": 0.07212,
+  "num_samples": 750
+}
