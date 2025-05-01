@@ -131,54 +131,6 @@ class math_task(Task):
         """
         return self.data.iloc[idx]["answer_number"]
     
-
-    @staticmethod
-    def en_cot_prompt_wrap(self,
-                    question: str,
-                    lang: str) -> str:
-        
-
-        prompt = f"Answer the question using English language. Answer the question in englisn and not whatever language the question is in. Question: {question}. You need to think in english and answer in english. I emphasize, you need to think in english and answer in english. "
-
-        return prompt
-    
-
-    @staticmethod
-    def binary_tot_prompt_wrap(self,
-                               native_question: str,
-                               source_lang:str,
-                               native_reasoning_path: str,
-                               question: str,
-                               lang: str,
-                               reasoning_path: str) -> str:
-        prompt = f'''
-            Simulate the collaboration of 2 mathematicians answering a question in their mother tongue: {lang} and {source_lang}.
-            Their step by step thought process are shared below. Understand both perspective and arrive at a final answer
-            
-            Mathematician in {source_lang}
-            Question: {native_question}
-            Reasoning path: {native_reasoning_path}
-
-            Mathematician in {lang}
-            Question: {question}
-            Reasoning path: {reasoning_path}
-            '''
-        return prompt
-
-
-    @staticmethod
-    def multi_tot_prompt_wrap(self, native_question: str, native_lang: str, reasoning_paths: list) -> str:
-        num_mathematicians = len(reasoning_paths)
-        prompt = f"Simulate the collaboration of {num_mathematicians} mathematicians answering a question in their mother tongue.\n"
-        
-        for i, reasoning in enumerate(reasoning_paths, start=1):
-            prompt += f"\nMathematician {i}:\nQuestion: {native_question}\nReasoning path: {reasoning}\n"
-        
-        prompt += f"\nBased on all the reasoning above, arrive at a final answer. Reason in {native_lang}"
-        return prompt
-
-
-
     ############
     # Extract the final answer
     ############
