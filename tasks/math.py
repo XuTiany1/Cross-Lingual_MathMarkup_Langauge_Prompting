@@ -6,7 +6,6 @@ from tasks.task import Task, DATA_PATH
 import importlib
 import math
 from datasets import load_dataset
-from prompts.MATH.pal import *
 
 
 class math_task(Task):
