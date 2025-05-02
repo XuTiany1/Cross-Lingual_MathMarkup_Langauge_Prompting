@@ -1,0 +1,14 @@
+--- Hyperparameters / Args ---
+task: MGSM
+lang: hau
+languages: ['amh', 'ewe', 'hau', 'ibo', 'kin', 'lin', 'lug', 'orm', 'sna', 'sot', 'swa', 'twi', 'wol', 'xho', 'yor', 'zul']
+model_type: gemma_12b
+solve_method: CLP
+understand_langauge: en_understand
+run_name: english
+understander_lang: en
+shot: 2
+model_max_token: 4094
+model_temperature: 0.5
+total_dataset_sample: 250
+understander_lang_list: ['en', 'en', 'en']

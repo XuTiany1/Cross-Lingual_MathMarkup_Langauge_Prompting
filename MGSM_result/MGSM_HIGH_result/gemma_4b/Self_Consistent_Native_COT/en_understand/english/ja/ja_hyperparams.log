@@ -1,0 +1,14 @@
+--- Hyperparameters / Args ---
+task: MGSM
+lang: ja
+languages: ['en', 'fr', 'ja']
+model_type: gemma_4b
+solve_method: Self_Consistent_Native_COT
+understand_langauge: en_understand
+run_name: english
+understander_lang: en
+shot: 2
+model_max_token: 4094
+model_temperature: 0.5
+total_dataset_sample: 250
+understander_lang_list: ['ja', 'ja', 'ja']

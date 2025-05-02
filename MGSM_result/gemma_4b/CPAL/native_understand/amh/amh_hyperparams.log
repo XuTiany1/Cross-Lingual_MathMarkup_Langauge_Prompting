@@ -1,0 +1,14 @@
+--- Hyperparameters / Args ---
+task: MGSM
+lang: amh
+languages: ['amh', 'ewe', 'hau', 'ibo', 'kin', 'lin', 'lug', 'orm', 'sna', 'sot', 'swa', 'twi', 'vai', 'wol', 'xho', 'yor', 'zul']
+model_type: gemma_4b
+solve_method: CPAL
+understand_langauge: native_understand
+run_name: native_en_oneshot
+understander_lang: en
+shot: 2
+model_max_token: 4096
+model_temperature: 0.5
+total_dataset_sample: 250
+understander_lang_list: ['amh', 'amh', 'amh']
